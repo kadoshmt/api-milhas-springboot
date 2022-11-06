@@ -28,18 +28,24 @@ import br.com.janesroberto.milhas.service.AirlineService;
 import br.com.janesroberto.milhas.service.UserService;
 
 @RestController
-@RequestMapping("/airline")
+@RequestMapping("/api/airline")
 public class AirlineController {
 
 	@Autowired
 	private AirlineService airlineService;
 
 	@Autowired
-	private UserService userService;	
+	private UserService userService;
+
+	private User user;
+
+	private void setUserFromContext() {
+		this.user = (User) userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+	}
 
 	@GetMapping
 	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public List<AirlineDto> list() {			
+	public List<AirlineDto> list() {
 		return airlineService.getAllAirlines();
 	}
 
@@ -57,8 +63,7 @@ public class AirlineController {
 	@Transactional
 	@PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
 	public ResponseEntity<AirlineDto> create(@RequestBody @Valid AirlineFormDto form, UriComponentsBuilder uriBuilder) {
-		
-		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+		setUserFromContext();
 		if (user != null) {
 			AirlineDto airline = airlineService.addAirline(form, user);
 			URI uri = uriBuilder.path("/user/{id}").buildAndExpand(airline.getId()).toUri();
@@ -71,7 +76,7 @@ public class AirlineController {
 	@Transactional
 	@PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
 	public ResponseEntity<AirlineDto> update(@PathVariable Long id, @RequestBody @Valid AirlineFormDto form) {
-		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+		setUserFromContext();
 		if (user != null) {
 			AirlineDto airline = airlineService.updateAirline(form, id, user);
 			return ResponseEntity.ok(airline);
@@ -83,7 +88,8 @@ public class AirlineController {
 	@Transactional
 	@PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
 	public ResponseEntity<AirlineDto> delete(@PathVariable Long id) {
-		Boolean airlineDeleted = airlineService.deleteAirline(id);
+		setUserFromContext();
+		Boolean airlineDeleted = airlineService.deleteAirline(id, user);
 		if (airlineDeleted) {
 			return ResponseEntity.ok().build();
 		}

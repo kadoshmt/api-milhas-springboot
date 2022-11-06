@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.com.janesroberto.milhas.model.Airline;
 
-public interface AirlineRepository extends JpaRepository<Airline, Long>{
+public interface AirlineRepository extends JpaRepository<Airline, Long> {
 
 }

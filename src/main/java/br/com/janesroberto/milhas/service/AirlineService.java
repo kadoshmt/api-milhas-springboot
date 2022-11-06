@@ -12,18 +12,13 @@ import br.com.janesroberto.milhas.dto.AirlineFormDto;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.User;
 import br.com.janesroberto.milhas.repository.AirlineRepository;
-import br.com.janesroberto.milhas.repository.UserRepository;
 
 @Service
-public class AirlineService implements IAirlineService{
+public class AirlineService implements IAirlineService{	
 	
-	@Autowired
-	private UserRepository userRepository;
 	
 	@Autowired
 	private AirlineRepository airlineRepository;
-	
-	private final Long USER_ID = 1L;
 
 	@Override
 	public List<AirlineDto> getAllAirlines() {
@@ -64,11 +59,7 @@ public class AirlineService implements IAirlineService{
 	}
 
 	@Override
-	public Boolean deleteAirline(Long id) {
-		Boolean userExists = userRepository.existsById(USER_ID);
-		if (!userExists) {
-			return false;
-		}
+	public Boolean deleteAirline(Long id, User user) {
 
 		Airline airlineFounded = this.getAirlineById(id);
 		if (airlineFounded != null) {

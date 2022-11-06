@@ -68,7 +68,7 @@ public class SecurityConfiguration {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		System.out.println("Chamou SecurityConfiguration.SecurityFilterChain() **************************************************************************");
 		http.cors().and().csrf().disable();
-		http.authorizeRequests().antMatchers(HttpMethod.POST, "/auth/**").permitAll();
+		http.authorizeRequests().antMatchers(HttpMethod.POST, "/api/auth/**").permitAll();
 		// http.authorizeRequests().antMatchers(HttpMethod.GET, "/**").permitAll();
 		http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler);
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

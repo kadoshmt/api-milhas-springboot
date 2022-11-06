@@ -11,7 +11,7 @@ import br.com.janesroberto.milhas.dto.UserDto;
 import br.com.janesroberto.milhas.service.UserService;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 	
 	@Autowired

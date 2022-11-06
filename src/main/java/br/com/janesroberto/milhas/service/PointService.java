@@ -1,10 +1,10 @@
 package br.com.janesroberto.milhas.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.janesroberto.milhas.dto.PointConfirmFormDto;
@@ -15,7 +15,6 @@ import br.com.janesroberto.milhas.model.Point;
 import br.com.janesroberto.milhas.model.User;
 import br.com.janesroberto.milhas.repository.AirlineRepository;
 import br.com.janesroberto.milhas.repository.PointRepository;
-import br.com.janesroberto.milhas.repository.UserRepository;
 
 @Service
 public class PointService implements IPointService {
@@ -24,31 +23,34 @@ public class PointService implements IPointService {
 	private PointRepository pointRepository;
 
 	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
 	private AirlineRepository airlineRepository;
 
-	
-	@Override
-	public List<PointDto> getAllPointsByUser(User user) {
-		List<Point> points = pointRepository.findByUserId(user.getId());
-		List<PointDto> pointsDto = new ArrayList<PointDto>();
-		points.forEach(point -> {
-			pointsDto.add(new PointDto(point));
-		});
-		return pointsDto;
-	}
-
-	@Override
-	public List<PointDto> getPointsByCompanyIdAndUser(Long id, User user) {
+//	@Override
+//	public List<PointDto> getAllPointsByUser(User user) {
 //		List<Point> points = pointRepository.findByUserId(user.getId());
 //		List<PointDto> pointsDto = new ArrayList<PointDto>();
 //		points.forEach(point -> {
 //			pointsDto.add(new PointDto(point));
 //		});
 //		return pointsDto;
-		return null;
+//	}
+
+	@Override
+	public Page<PointDto> listAllPoints(Long AirlineId, User user, Pageable paginacao) {
+		Page<Point> points;
+		if (AirlineId != null) {
+			points = pointRepository.findByUserIdAndAirlineId(user.getId(), AirlineId, paginacao);
+		} else {
+			points = pointRepository.findByUserId(user.getId(), paginacao);
+		}
+
+		return PointDto.convert(points);
+//		List<PointDto> pointsDto = new ArrayList<PointDto>();
+//		points.forEach(point -> {
+//			pointsDto.add(new PointDto(point));
+//		});
+//		return pointsDto;
+		// return null;
 	}
 
 	@Override
@@ -84,27 +86,20 @@ public class PointService implements IPointService {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) {
 		Point pointFounded = this.getPointsById(id);
 		// verify if exists an enty and if this enty was added by the logged user
 		if (pointFounded != null && pointFounded.getUser().getId() == user.getId()) {
-			Point point = form.prepareToUpdate(pointFounded);			
+			Point point = form.prepareToUpdate(pointFounded);
 			return new PointDto(point);
 		}
 		return null;
 	}
 
-
 	@Override
 	public Boolean deletePoint(Long id, User user) {
-		Boolean userExists = userRepository.existsById(user.getId());
-
-		if (!userExists) {
-			return false;
-		}
-
 		// verify if exists an enty and if this enty was added by the logged user
 		Point pointFounded = this.getPointsById(id);
 		if (pointFounded != null && pointFounded.getUser().getId() == user.getId()) {

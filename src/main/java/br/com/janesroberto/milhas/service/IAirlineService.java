@@ -17,7 +17,7 @@ public interface IAirlineService {
 	
 	AirlineDto updateAirline(AirlineFormDto airline, Long id, User user );
 	
-	Boolean deleteAirline(Long id);
+	Boolean deleteAirline(Long id, User user);
 	
 	Boolean airlineExistsById(Long id);
 
