@@ -4,17 +4,18 @@ import java.util.List;
 import java.util.Optional;
 
 import br.com.janesroberto.milhas.dto.UserDto;
+import br.com.janesroberto.milhas.exception.UserNotFoundException;
 import br.com.janesroberto.milhas.model.User;
 
 public interface IUserService {
 
 	List<UserDto> getAllUsers();
 	
-	User getUserById(Long id);
+	User getUserById(Long id) throws UserNotFoundException;
 	
-	User getUserByEmail(String email);
+	User getUserByEmail(String email) throws UserNotFoundException;
 	
-	Optional<User> getUserByEmailAuth(String email);	
+	Optional<User> getUserByEmailAuth(String email) throws UserNotFoundException;	
 	
 	Boolean userExistsById(Long id);
 	

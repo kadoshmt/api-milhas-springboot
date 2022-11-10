@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,11 +24,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.janesroberto.milhas.dto.PointConfirmFormDto;
 import br.com.janesroberto.milhas.dto.PointDto;
 import br.com.janesroberto.milhas.dto.PointFormDto;
+import br.com.janesroberto.milhas.exception.UserNotFoundException;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
 import br.com.janesroberto.milhas.model.User;
@@ -51,7 +54,12 @@ public class PointController {
 	private User user;
 
 	private void setUserFromContext() {
-		this.user = (User) userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+		try {
+			this.user = (User) userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+		} catch (UserNotFoundException e) {
+			// TODO Auto-generated catch block
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+		}
 	}
 
 //	@GetMapping
