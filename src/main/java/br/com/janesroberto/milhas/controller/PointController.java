@@ -30,6 +30,7 @@ import br.com.janesroberto.milhas.dto.PointDto;
 import br.com.janesroberto.milhas.dto.PointFormDto;
 import br.com.janesroberto.milhas.exception.AirlineNotFoundException;
 import br.com.janesroberto.milhas.exception.PointNotFoundException;
+import br.com.janesroberto.milhas.exception.UnauthorizedAccessException;
 import br.com.janesroberto.milhas.exception.UserNotFoundException;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
@@ -92,7 +93,7 @@ public class PointController {
 
 	@PutMapping("/{id}")	
 	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> update(@PathVariable Long id, @RequestBody @Valid PointFormDto form) throws UserNotFoundException, PointNotFoundException, AirlineNotFoundException {
+	public ResponseEntity<PointDto> update(@PathVariable Long id, @RequestBody @Valid PointFormDto form) throws UserNotFoundException, PointNotFoundException, AirlineNotFoundException, UnauthorizedAccessException {
 		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
 		PointDto point = pointService.updatePoint(form, id, user);
 		return ResponseEntity.ok(point);
@@ -100,7 +101,7 @@ public class PointController {
 
 	@PutMapping("/confirm/{id}")	
 	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> confirm(@PathVariable Long id, @RequestBody @Valid PointConfirmFormDto form) throws UserNotFoundException, PointNotFoundException {
+	public ResponseEntity<PointDto> confirm(@PathVariable Long id, @RequestBody @Valid PointConfirmFormDto form) throws UserNotFoundException, PointNotFoundException, UnauthorizedAccessException {
 		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
 		PointDto point = pointService.confirmPoint(form, id, user);
 		return ResponseEntity.ok(point);
@@ -108,7 +109,7 @@ public class PointController {
 
 	@DeleteMapping("/{id}")	
 	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> delete(@PathVariable Long id) throws UserNotFoundException, PointNotFoundException {
+	public ResponseEntity<PointDto> delete(@PathVariable Long id) throws UserNotFoundException, PointNotFoundException, UnauthorizedAccessException {
 		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
 		Boolean pointDeleted = pointService.deletePoint(id, user);
 		if (!pointDeleted) {

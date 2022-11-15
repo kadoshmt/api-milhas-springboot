@@ -97,22 +97,19 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
 
 	// PointNotFoundException
 	@ExceptionHandler(AirlineNotFoundException.class)
-	public final ResponseEntity<Object> handleAirlineNotFoundException(AirlineNotFoundException ex, WebRequest request) {
+	public final ResponseEntity<Object> handleAirlineNotFoundException(AirlineNotFoundException ex,
+			WebRequest request) {
 		CustomErrorDetails customErrorDetails = new CustomErrorDetails(new Date(), ex.getMessage(),
 				request.getDescription(false));
 		return new ResponseEntity<>(customErrorDetails, HttpStatus.NOT_FOUND);
 	}
-//    @ResponseStatus(HttpStatus.BAD_REQUEST)
-//	@ExceptionHandler(MethodArgumentNotValidException.class)
-//	public List<FormErrorDto> handleInvalidArgument(MethodArgumentNotValidException exception) {
-//		List<FormErrorDto> formErrorList = new ArrayList<>();
-//		List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors();
-//		
-//		fieldErrors.forEach(error -> {
-//			String localedError = messageSource.getMessage(error, LocaleContextHolder.getLocale());			
-//			formErrorList.add(new FormErrorDto(error.getField(), localedError));
-//		});
-//		
-//		return formErrorList;
-//	}
+
+	// UnauthorizedAccessException
+	@ExceptionHandler(UnauthorizedAccessException.class)
+	public final ResponseEntity<Object> handleUnauthorizedAccessException(UnauthorizedAccessException ex,
+			WebRequest request) {
+		CustomErrorDetails customErrorDetails = new CustomErrorDetails(new Date(), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(customErrorDetails, HttpStatus.UNAUTHORIZED);
+	}
 }

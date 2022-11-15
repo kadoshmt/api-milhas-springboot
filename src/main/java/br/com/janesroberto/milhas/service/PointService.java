@@ -14,7 +14,7 @@ import br.com.janesroberto.milhas.dto.PointDto;
 import br.com.janesroberto.milhas.dto.PointFormDto;
 import br.com.janesroberto.milhas.exception.AirlineNotFoundException;
 import br.com.janesroberto.milhas.exception.PointNotFoundException;
-import br.com.janesroberto.milhas.exception.UserNotFoundException;
+import br.com.janesroberto.milhas.exception.UnauthorizedAccessException;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
 import br.com.janesroberto.milhas.model.User;
@@ -77,31 +77,32 @@ public class PointService implements IPointService {
 
 	@Override
 	@Transactional
-	public PointDto updatePoint(PointFormDto form, Long id, User user) throws PointNotFoundException, AirlineNotFoundException {
+	public PointDto updatePoint(PointFormDto form, Long id, User user) throws PointNotFoundException, AirlineNotFoundException, UnauthorizedAccessException {
 		Point pointFounded = this.getPointsById(id);
-		// verify if exists an enty and if this enty was added by the logged user
-		if (pointFounded.getUser().getId() == user.getId()) {
-			Point point = form.prepareToUpdate(pointFounded);
-			// verify if the user change the company, if he did, change the airline company
-			if (form.getAirlineId() != point.getAirline().getId()) {
-				Optional<Airline> airline = airlineRepository.findById(form.getAirlineId());
-				if (!airline.isPresent()) {
-					throw new AirlineNotFoundException("Airline company with id " + id + " not found.");
-				}
-				point.setAirline(airline.get());
-			}
-			return new PointDto(point);
+		// verify the entry was added by the logged user
+		if (pointFounded.getUser().getId() != user.getId()) {
+			throw new UnauthorizedAccessException("You are not allowed to update these points..");
 		}
-		return null;
+		Point point = form.prepareToUpdate(pointFounded);
+		// verify if the user changed the company, if he did, change the airline company
+		if (form.getAirlineId() != point.getAirline().getId()) {
+			Optional<Airline> airline = airlineRepository.findById(form.getAirlineId());
+			if (!airline.isPresent()) {
+				throw new AirlineNotFoundException("Airline company with id " + id + " not found.");
+			}
+			point.setAirline(airline.get());
+		}
+		return new PointDto(point);
+	
 	}
 
 	@Override
 	@Transactional
-	public PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) throws PointNotFoundException {
+	public PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) throws PointNotFoundException, UnauthorizedAccessException {
 		Point pointFounded = this.getPointsById(id);
-		// verify if exists an enty and if this enty was added by the logged user
+		// verify if the entry was added by the logged user
 		if (pointFounded.getUser().getId() != user.getId()) {
-			return null;
+			throw new UnauthorizedAccessException("You are not allowed to confirm these points.");
 		}
 		Point point = form.prepareToUpdate(pointFounded);
 		return new PointDto(point);
@@ -109,11 +110,11 @@ public class PointService implements IPointService {
 
 	@Override
 	@Transactional
-	public Boolean deletePoint(Long id, User user) throws PointNotFoundException {
-		// verify if exists an enty and if this enty was added by the logged user
+	public Boolean deletePoint(Long id, User user) throws PointNotFoundException, UnauthorizedAccessException {
 		Point pointFounded = this.getPointsById(id);
+		// verify if the entry was added by the logged user
 		if (pointFounded.getUser().getId() != user.getId()) {
-			return false;
+			throw new UnauthorizedAccessException("YYou are not allowed to delete these points.");
 		}
 		pointRepository.deleteById(id);
 		return true;

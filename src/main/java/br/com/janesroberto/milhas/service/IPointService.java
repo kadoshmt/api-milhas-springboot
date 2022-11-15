@@ -8,6 +8,7 @@ import br.com.janesroberto.milhas.dto.PointDto;
 import br.com.janesroberto.milhas.dto.PointFormDto;
 import br.com.janesroberto.milhas.exception.AirlineNotFoundException;
 import br.com.janesroberto.milhas.exception.PointNotFoundException;
+import br.com.janesroberto.milhas.exception.UnauthorizedAccessException;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
 import br.com.janesroberto.milhas.model.User;
@@ -22,10 +23,10 @@ public interface IPointService {
 
 	PointDto addPoint(PointFormDto form, User user, Airline airline);
 
-	PointDto updatePoint(PointFormDto form, Long id, User user) throws PointNotFoundException, AirlineNotFoundException;
+	PointDto updatePoint(PointFormDto form, Long id, User user) throws PointNotFoundException, AirlineNotFoundException, UnauthorizedAccessException;
 
-	PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) throws PointNotFoundException;
+	PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) throws PointNotFoundException, UnauthorizedAccessException;
 
-	Boolean deletePoint(Long id, User user) throws PointNotFoundException;
+	Boolean deletePoint(Long id, User user) throws PointNotFoundException, UnauthorizedAccessException;
 
 }
