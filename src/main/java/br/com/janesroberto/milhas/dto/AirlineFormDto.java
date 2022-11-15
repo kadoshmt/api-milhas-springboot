@@ -8,7 +8,9 @@ import org.hibernate.validator.constraints.Length;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.User;
 import br.com.janesroberto.milhas.repository.AirlineRepository;
+import lombok.Data;
 
+@Data
 public class AirlineFormDto {
 
 	@NotNull
@@ -17,13 +19,6 @@ public class AirlineFormDto {
 	private String company;
 	
 
-	public String getCompany() {
-		return company;
-	}
-
-	public void setCompany(String company) {
-		this.company = company;
-	}
 
 	public Airline prepareToCreate(User user) {
 		
@@ -37,4 +32,11 @@ public class AirlineFormDto {
 		return airline;		
 	}
 
+//	public String getCompany() {
+//		return company;
+//	}
+//	
+//	public void setCompany(String company) {
+//		this.company = company;
+//	}
 }

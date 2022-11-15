@@ -32,7 +32,7 @@ public class UserService implements IUserService {
 	public User getUserById(Long id) throws UserNotFoundException {
 		Optional<User> user = userRepository.findById(id);
 		if (!user.isPresent()) {
-			throw new UserNotFoundException("User Not found in user Repository, provide the correct user id");
+			throw new UserNotFoundException("User with id " + id + " not found");
 		}
 		return user.get();
 	}
@@ -41,7 +41,7 @@ public class UserService implements IUserService {
 	public User getUserByEmail(String email) throws UserNotFoundException {
 		Optional<User> user = userRepository.findByEmail(email);
 		if (!user.isPresent()) {
-			throw new UserNotFoundException("User Not found in user Repository, provide the correct user email");
+			throw new UserNotFoundException("User with email " + email + " not found");
 		}
 		return user.get();
 	}
@@ -50,7 +50,7 @@ public class UserService implements IUserService {
 	public Optional<User> getUserByEmailAuth(String email) throws UserNotFoundException {
 		Optional<User> user = userRepository.findByEmail(email);
 		if (!user.isPresent()) {
-			throw new UserNotFoundException("User Not found in user Repository, provide the correct user email");
+			throw new UserNotFoundException("User with email " + email + " not found, provide the correct user email");
 		}
 		return user;
 	}

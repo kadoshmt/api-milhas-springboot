@@ -2,6 +2,8 @@ package br.com.janesroberto.milhas.service;
 
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +12,9 @@ import org.springframework.stereotype.Service;
 import br.com.janesroberto.milhas.dto.PointConfirmFormDto;
 import br.com.janesroberto.milhas.dto.PointDto;
 import br.com.janesroberto.milhas.dto.PointFormDto;
+import br.com.janesroberto.milhas.exception.AirlineNotFoundException;
+import br.com.janesroberto.milhas.exception.PointNotFoundException;
+import br.com.janesroberto.milhas.exception.UserNotFoundException;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
 import br.com.janesroberto.milhas.model.User;
@@ -36,12 +41,12 @@ public class PointService implements IPointService {
 //	}
 
 	@Override
-	public Page<PointDto> listAllPoints(Long AirlineId, User user, Pageable paginacao) {
+	public Page<PointDto> listAllPoints(Long AirlineId, User user, Pageable pageable) {
 		Page<Point> points;
 		if (AirlineId != null) {
-			points = pointRepository.findByUserIdAndAirlineId(user.getId(), AirlineId, paginacao);
+			points = pointRepository.findByUserIdAndAirlineId(user.getId(), AirlineId, pageable);
 		} else {
-			points = pointRepository.findByUserId(user.getId(), paginacao);
+			points = pointRepository.findByUserId(user.getId(), pageable);
 		}
 
 		return PointDto.convert(points);
@@ -54,15 +59,16 @@ public class PointService implements IPointService {
 	}
 
 	@Override
-	public Point getPointsById(Long id) {
+	public Point getPointsById(Long id) throws PointNotFoundException {
 		Optional<Point> points = pointRepository.findById(id);
-		if (points.isPresent()) {
-			return points.get();
+		if (!points.isPresent()) {
+			throw new PointNotFoundException("Point with id " + id + " not found.");
 		}
-		return null;
+		return points.get();
 	}
 
 	@Override
+	@Transactional
 	public PointDto addPoint(PointFormDto form, User user, Airline airline) {
 		Point point = form.prepareToCreate(user, airline);
 		pointRepository.save(point);
@@ -70,17 +76,19 @@ public class PointService implements IPointService {
 	}
 
 	@Override
-	public PointDto updatePoint(PointFormDto form, Long id, User user) {
+	@Transactional
+	public PointDto updatePoint(PointFormDto form, Long id, User user) throws PointNotFoundException, AirlineNotFoundException {
 		Point pointFounded = this.getPointsById(id);
 		// verify if exists an enty and if this enty was added by the logged user
-		if (pointFounded != null && pointFounded.getUser().getId() == user.getId()) {
+		if (pointFounded.getUser().getId() == user.getId()) {
 			Point point = form.prepareToUpdate(pointFounded);
 			// verify if the user change the company, if he did, change the airline company
 			if (form.getAirlineId() != point.getAirline().getId()) {
 				Optional<Airline> airline = airlineRepository.findById(form.getAirlineId());
-				if (airline.isPresent()) {
-					point.setAirline(airline.get());
+				if (!airline.isPresent()) {
+					throw new AirlineNotFoundException("Airline company with id " + id + " not found.");
 				}
+				point.setAirline(airline.get());
 			}
 			return new PointDto(point);
 		}
@@ -88,25 +96,26 @@ public class PointService implements IPointService {
 	}
 
 	@Override
-	public PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) {
+	@Transactional
+	public PointDto confirmPoint(PointConfirmFormDto form, Long id, User user) throws PointNotFoundException {
 		Point pointFounded = this.getPointsById(id);
 		// verify if exists an enty and if this enty was added by the logged user
-		if (pointFounded != null && pointFounded.getUser().getId() == user.getId()) {
-			Point point = form.prepareToUpdate(pointFounded);
-			return new PointDto(point);
+		if (pointFounded.getUser().getId() != user.getId()) {
+			return null;
 		}
-		return null;
+		Point point = form.prepareToUpdate(pointFounded);
+		return new PointDto(point);
 	}
 
 	@Override
-	public Boolean deletePoint(Long id, User user) {
+	@Transactional
+	public Boolean deletePoint(Long id, User user) throws PointNotFoundException {
 		// verify if exists an enty and if this enty was added by the logged user
 		Point pointFounded = this.getPointsById(id);
-		if (pointFounded != null && pointFounded.getUser().getId() == user.getId()) {
-			pointRepository.deleteById(id);
-			return true;
+		if (pointFounded.getUser().getId() != user.getId()) {
+			return false;
 		}
-		return false;
+		pointRepository.deleteById(id);
+		return true;
 	}
-
 }

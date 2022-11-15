@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,8 +33,6 @@ import br.com.janesroberto.milhas.repository.UserRepository;
 import br.com.janesroberto.milhas.security.JwtUtils;
 import br.com.janesroberto.milhas.security.UserDetailsApi;
 
-
-
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
@@ -56,55 +55,43 @@ public class AuthController {
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody UserSignInDto loginRequest) {
 
-		System.out.println("Chamou Controller **************************************************************************");
+		System.out.println(
+				"Chamou Controller **************************************************************************");
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-		System.out.println("Chamou método authenticationManager no Controller **************************************************************************");
+		System.out.println(
+				"Chamou método authenticationManager no Controller **************************************************************************");
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String jwt = jwtUtils.generateJwtToken(authentication);		
-		
-		
-		UserDetailsApi userDetails = (UserDetailsApi) authentication.getPrincipal();		
-		List<String> roles = userDetails.getAuthorities().stream()
-				.map(item -> item.getAuthority())
+		String jwt = jwtUtils.generateJwtToken(authentication);
+
+		UserDetailsApi userDetails = (UserDetailsApi) authentication.getPrincipal();
+		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 				.collect(Collectors.toList());
 
-		return ResponseEntity.ok(new JwtLoginResponseDto(jwt, 
-												 userDetails.getId(),												 
-												 userDetails.getEmail(), 
-												 roles));
+		return ResponseEntity.ok(new JwtLoginResponseDto(jwt, userDetails.getId(), userDetails.getEmail(), roles));
 	}
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody UserSignUpDto signUpRequest) {
-//		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-//			return ResponseEntity
-//					.badRequest()
-//					.body(new MessageDto("Error: Username is already taken!"));
-//		}		
+	public ResponseEntity<?> registerUser(@Valid @RequestBody UserSignUpDto signUpRequest) {//	
 
 		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-			return ResponseEntity
-					.badRequest()
-					.body(new MessageDto("Error: Email is already in use!"));
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageDto("Conflict: Email is already in use!"));
 		}
-		
 
 		// Create new user's account
-		User user = new User(//signUpRequest.getUsername(), 
-							 signUpRequest.getEmail(),
-							 encoder.encode(signUpRequest.getPassword()));		
+		User user = new User(// signUpRequest.getUsername(),
+				signUpRequest.getEmail(), encoder.encode(signUpRequest.getPassword()));
 
 		Set<String> strRoles = signUpRequest.getRole();
-		Set<Role> roles = new HashSet<>();		
-		
+		Set<Role> roles = new HashSet<>();
+
 		if (strRoles == null) {
 			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			roles.add(userRole);
 		} else {
-			strRoles.forEach(role -> {				
+			strRoles.forEach(role -> {
 				switch (role) {
 				case "admin":
 					Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
@@ -124,7 +111,7 @@ public class AuthController {
 					roles.add(userRole);
 				}
 			});
-		}		
+		}
 
 		user.setRoles(roles);
 		userRepository.save(user);

@@ -1,9 +1,7 @@
 package br.com.janesroberto.milhas.controller;
 
 import java.net.URI;
-import java.util.List;
 
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,12 +23,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import br.com.janesroberto.milhas.dto.PointConfirmFormDto;
 import br.com.janesroberto.milhas.dto.PointDto;
 import br.com.janesroberto.milhas.dto.PointFormDto;
+import br.com.janesroberto.milhas.exception.AirlineNotFoundException;
+import br.com.janesroberto.milhas.exception.PointNotFoundException;
 import br.com.janesroberto.milhas.exception.UserNotFoundException;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
@@ -39,6 +39,7 @@ import br.com.janesroberto.milhas.service.PointService;
 import br.com.janesroberto.milhas.service.UserService;
 
 @RestController
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/point")
 public class PointController {
 
@@ -51,16 +52,6 @@ public class PointController {
 	@Autowired
 	private UserService userService;
 
-	private User user;
-
-	private void setUserFromContext() {
-		try {
-			this.user = (User) userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-		} catch (UserNotFoundException e) {
-			// TODO Auto-generated catch block
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-		}
-	}
 
 //	@GetMapping
 //	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
@@ -71,74 +62,59 @@ public class PointController {
 	
 	@GetMapping
 	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public Page<PointDto> list(@RequestParam(required=false) String airlineId, @PageableDefault(sort="createdDate", direction=Direction.DESC, page = 0, size = 10) Pageable paginacao) {
-		setUserFromContext();
+	public Page<PointDto> list(@RequestParam(required=false) String airlineId, @PageableDefault(page = 0, size = 10, sort="createdDate", direction=Direction.DESC) Pageable pageable) throws UserNotFoundException {
+		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
 		Long id = (airlineId == null) ? null : Long.parseLong(airlineId);
-		return pointService.listAllPoints(id, user, paginacao);
+		return pointService.listAllPoints(id, user, pageable);
 	}
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> read(@PathVariable Long id) {
-		setUserFromContext();
+	public ResponseEntity<PointDto> read(@PathVariable Long id) throws UserNotFoundException, PointNotFoundException {
+		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
 		Point point = pointService.getPointsById(id);
-		if (point != null && point.getUser().getId() == user.getId()) {
-			return ResponseEntity.ok(new PointDto(point));
-		} else if (point != null && point.getUser().getId() != user.getId()) {
-			return ResponseEntity.status(401).build();
-		} else {
+		if (point.getUser().getId() != user.getId()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();			
+		}
+		return ResponseEntity.ok(new PointDto(point));
+	}
+		
+
+	@PostMapping	
+	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
+	public ResponseEntity<PointDto> create(@RequestBody @Valid PointFormDto form, UriComponentsBuilder uriBuilder) throws UserNotFoundException, AirlineNotFoundException {
+		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
+		Airline airline = airlineService.getAirlineById(form.getAirlineId());
+		PointDto point = pointService.addPoint(form, user, airline);
+		URI uri = uriBuilder.path("/api/point/{id}").buildAndExpand(point.getId()).toUri();
+		return ResponseEntity.created(uri).body(point);
+	}
+
+	@PutMapping("/{id}")	
+	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
+	public ResponseEntity<PointDto> update(@PathVariable Long id, @RequestBody @Valid PointFormDto form) throws UserNotFoundException, PointNotFoundException, AirlineNotFoundException {
+		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
+		PointDto point = pointService.updatePoint(form, id, user);
+		return ResponseEntity.ok(point);
+	}
+
+	@PutMapping("/confirm/{id}")	
+	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
+	public ResponseEntity<PointDto> confirm(@PathVariable Long id, @RequestBody @Valid PointConfirmFormDto form) throws UserNotFoundException, PointNotFoundException {
+		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
+		PointDto point = pointService.confirmPoint(form, id, user);
+		return ResponseEntity.ok(point);
+	}
+
+	@DeleteMapping("/{id}")	
+	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
+	public ResponseEntity<PointDto> delete(@PathVariable Long id) throws UserNotFoundException, PointNotFoundException {
+		User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());	
+		Boolean pointDeleted = pointService.deletePoint(id, user);
+		if (!pointDeleted) {
 			return ResponseEntity.notFound().build();
 		}
-	}
-
-	@PostMapping
-	@Transactional
-	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> create(@RequestBody @Valid PointFormDto form, UriComponentsBuilder uriBuilder) {
-		setUserFromContext();
-		Airline airline = airlineService.getAirlineById(form.getAirlineId());
-		if (user != null && airline != null) {
-			PointDto point = pointService.addPoint(form, user, airline);
-			URI uri = uriBuilder.path("/api/point/{id}").buildAndExpand(point.getId()).toUri();
-			return ResponseEntity.created(uri).body(point);
-		}
-		return ResponseEntity.badRequest().build();
-	}
-
-	@PutMapping("/{id}")
-	@Transactional
-	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> update(@PathVariable Long id, @RequestBody @Valid PointFormDto form) {
-		setUserFromContext();
-		if (user != null) {
-			PointDto point = pointService.updatePoint(form, id, user);
-			return ResponseEntity.ok(point);
-		}
-		return ResponseEntity.notFound().build();
-	}
-
-	@PutMapping("/confirm/{id}")
-	@Transactional
-	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> confirm(@PathVariable Long id, @RequestBody @Valid PointConfirmFormDto form) {
-		setUserFromContext();
-		if (user != null) {
-			PointDto point = pointService.confirmPoint(form, id, user);
-			return ResponseEntity.ok(point);
-		}
-		return ResponseEntity.notFound().build();
-	}
-
-	@DeleteMapping("/{id}")
-	@Transactional
-	@PreAuthorize("hasRole('USER') or hasRole('SUPER_ADMIN') or hasRole('ADMIN')")
-	public ResponseEntity<PointDto> delete(@PathVariable Long id) {
-		setUserFromContext();
-		Boolean pointDeleted = pointService.deletePoint(id, user);
-		if (pointDeleted) {
-			return ResponseEntity.status(204).build();
-		}
-		return ResponseEntity.notFound().build();
+		return ResponseEntity.status(204).build();
 	}
 
 }

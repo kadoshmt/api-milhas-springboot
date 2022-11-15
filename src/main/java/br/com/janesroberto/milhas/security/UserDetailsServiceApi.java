@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import br.com.janesroberto.milhas.exception.UserNotFoundException;
 import br.com.janesroberto.milhas.model.User;
-import br.com.janesroberto.milhas.repository.UserRepository;
 import br.com.janesroberto.milhas.service.UserService;
 
 @Service

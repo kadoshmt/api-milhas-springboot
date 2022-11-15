@@ -1,7 +1,6 @@
 package br.com.janesroberto.milhas.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.validation.constraints.Max;
@@ -18,11 +17,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import br.com.janesroberto.milhas.model.Airline;
 import br.com.janesroberto.milhas.model.Point;
 import br.com.janesroberto.milhas.model.User;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 
-public class PointFormDto {
-
-	
+@Data
+@AllArgsConstructor
+public class PointFormDto {	
 	
 	//private LocalDateTime createdDate;
 
@@ -66,21 +67,21 @@ public class PointFormDto {
 		
 	}
 
-	public PointFormDto(Long id, LocalDateTime createdDate, String description, String origin, Integer estimatedPoints,
-			Integer pointsEarned, BigDecimal price, Date deadlineDate, Boolean isReceived,
-			Date receivedDate, String observation, Long airlineId) {		
-		//this.createdDate = createdDate;
-		this.description = description;
-		this.origin = origin;
-		this.estimatedPoints = estimatedPoints;
-		this.pointsEarned = pointsEarned;
-		this.price = price;
-		this.deadlineDate = deadlineDate;
-		this.isReceived = isReceived;
-		this.receivedDate = receivedDate;
-		this.observation = observation;
-		this.airlineId = airlineId;
-	}
+//	public PointFormDto(Long id, LocalDateTime createdDate, String description, String origin, Integer estimatedPoints,
+//			Integer pointsEarned, BigDecimal price, Date deadlineDate, Boolean isReceived,
+//			Date receivedDate, String observation, Long airlineId) {		
+//		//this.createdDate = createdDate;
+//		this.description = description;
+//		this.origin = origin;
+//		this.estimatedPoints = estimatedPoints;
+//		this.pointsEarned = pointsEarned;
+//		this.price = price;
+//		this.deadlineDate = deadlineDate;
+//		this.isReceived = isReceived;
+//		this.receivedDate = receivedDate;
+//		this.observation = observation;
+//		this.airlineId = airlineId;
+//	}
 	
 	public PointFormDto(Point point) {		
 		//this.createdDate = point.getCreatedDate();
@@ -106,95 +107,95 @@ public class PointFormDto {
 //		this.createdDate = createdDate;
 //	}
 
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public String getOrigin() {
-		return origin;
-	}
-
-	public void setOrigin(String origin) {
-		this.origin = origin;
-	}
-
-	public Integer getEstimatedPoints() {
-		return estimatedPoints;
-	}
-
-	public void setEstimatedPoints(Integer estimatedPoints) {
-		this.estimatedPoints = estimatedPoints;
-	}
-
-	public Integer getPointsEarned() {
-		return pointsEarned;
-	}
-
-	public void setPointsEarned(Integer pointsEarned) {
-		this.pointsEarned = pointsEarned;
-	}
-
-	public BigDecimal getPrice() {
-		return price;
-	}
-
-	public void setPrice(BigDecimal price) {
-		this.price = price;
-	}
-
-	public Date getDeadlineDate() {
-		return deadlineDate;
-	}
-
-	public void setDeadlineDate(Date deadlineDate) {
-		this.deadlineDate = deadlineDate;
-	}
-
-	public Boolean getIsReceived() {
-		return isReceived;
-	}
-
-	public void setIsReceived(Boolean isReceived) {
-		this.isReceived = isReceived;
-	}
-
-	public Date getReceivedDate() {
-		return receivedDate;
-	}
-
-	public void setReceivedDate(Date receivedDate) {
-		this.receivedDate = receivedDate;
-	}
-
-	public String getObservation() {
-		return observation;
-	}
-
-	public void setObservation(String observation) {
-		this.observation = observation;
-	}
-
-	public AirlineDto getAirline() {
-		return airline;
-	}
-
-	public void setAirline(AirlineDto airline) {
-		this.airline = airline;
-	}
-	
-	
-	
-	public Long getAirlineId() {
-		return airlineId;
-	}
-
-	public void setAirlineId(Long airlineId) {
-		this.airlineId = airlineId;
-	}
+//	public String getDescription() {
+//		return description;
+//	}
+//
+//	public void setDescription(String description) {
+//		this.description = description;
+//	}
+//
+//	public String getOrigin() {
+//		return origin;
+//	}
+//
+//	public void setOrigin(String origin) {
+//		this.origin = origin;
+//	}
+//
+//	public Integer getEstimatedPoints() {
+//		return estimatedPoints;
+//	}
+//
+//	public void setEstimatedPoints(Integer estimatedPoints) {
+//		this.estimatedPoints = estimatedPoints;
+//	}
+//
+//	public Integer getPointsEarned() {
+//		return pointsEarned;
+//	}
+//
+//	public void setPointsEarned(Integer pointsEarned) {
+//		this.pointsEarned = pointsEarned;
+//	}
+//
+//	public BigDecimal getPrice() {
+//		return price;
+//	}
+//
+//	public void setPrice(BigDecimal price) {
+//		this.price = price;
+//	}
+//
+//	public Date getDeadlineDate() {
+//		return deadlineDate;
+//	}
+//
+//	public void setDeadlineDate(Date deadlineDate) {
+//		this.deadlineDate = deadlineDate;
+//	}
+//
+//	public Boolean getIsReceived() {
+//		return isReceived;
+//	}
+//
+//	public void setIsReceived(Boolean isReceived) {
+//		this.isReceived = isReceived;
+//	}
+//
+//	public Date getReceivedDate() {
+//		return receivedDate;
+//	}
+//
+//	public void setReceivedDate(Date receivedDate) {
+//		this.receivedDate = receivedDate;
+//	}
+//
+//	public String getObservation() {
+//		return observation;
+//	}
+//
+//	public void setObservation(String observation) {
+//		this.observation = observation;
+//	}
+//
+//	public AirlineDto getAirline() {
+//		return airline;
+//	}
+//
+//	public void setAirline(AirlineDto airline) {
+//		this.airline = airline;
+//	}
+//	
+//	
+//	
+//	public Long getAirlineId() {
+//		return airlineId;
+//	}
+//
+//	public void setAirlineId(Long airlineId) {
+//		this.airlineId = airlineId;
+//	}
 
 	public Point prepareToCreate(User user, Airline airline) {
 		return new Point(description, origin, estimatedPoints, price, deadlineDate, observation, airline, user);
